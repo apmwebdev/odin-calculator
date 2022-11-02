@@ -91,6 +91,9 @@ const addKeyListeners = () => {
   
   document.getElementById('equals').addEventListener('click',
     equals);
+  
+  document.getElementById('backspace').addEventListener('click',
+    backspace);
 }
 
 const setKeyVal = (key) => {
@@ -99,6 +102,12 @@ const setKeyVal = (key) => {
 
 const equals = () => {
   updateScreen(operate(...getScreenTextAsArray()), true);
+}
+
+const backspace = () => {
+  if (getScreenText()) {
+    updateScreen(getScreenText().slice(0, -1), true);
+  }
 }
 
 const initCalculator = () => {
