@@ -4,6 +4,9 @@ const multiply = (a, b) => a * b;
 const divide = (a, b) => a / b;
 
 const operate = (a, operator, b) => {
+  a = Number(a);
+  b = Number(b);
+  
   switch (operator) {
     case '+':
       return add(a, b);
@@ -25,9 +28,15 @@ const maybeAddText = (str) => {
 }
 
 const isTextValid = (str) => {
-  if (getScreenText() === '') return true;
+  const screenText = getScreenText();
+  if (screenText === '') return true;
+  
   const arrayText = getScreenTextAsArray();
-  return !(arrayText[arrayText.length - 1].match(/\D/) && str.match(/\D/));
+  const lastItem = arrayText[arrayText.length - 1];
+  
+  if (lastItem.match(/\./) && str === '.') return false;
+  
+  return !(isOperator(lastItem) && isOperator(str));
 }
 
 const maybeDoOperation = (str) => {
@@ -50,8 +59,13 @@ const getScreenText = () =>
   document.querySelector('.calc-screen').textContent.toString();
 
 const getScreenTextAsArray = () => {
-  if (Array.isArray(getScreenText().match(/(\d+|\D+)/g))) {
-    return getScreenText().match(/(\d+|\D+)/g);
+  /**
+   * Split out the screen text into operands and operators and put the
+   * substrings into an array.
+   */
+  const returnArr = getScreenText().match(/(\d+(\.\d*)?|\D+)/g);
+  if (Array.isArray(returnArr)) {
+    return returnArr;
   }
   return [];
 }
@@ -65,6 +79,7 @@ const updateScreen = (text = '', shouldClearScreen = false) => {
   if (shouldClearScreen) screenText = '';
   screenText += text;
   document.querySelector('.calc-screen').textContent = screenText;
+  // console.log(getScreenTextAsArray());
 }
 
 const addKeyListeners = () => {
