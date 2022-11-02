@@ -1,55 +1,94 @@
-let calc = {};
+const add = (a, b) => a + b;
+const subtract = (a, b) => a - b;
+const multiply = (a, b) => a * b;
+const divide = (a, b) => a / b;
 
-calc.add = (a, b) => a + b;
-calc.subtract = (a, b) => a - b;
-calc.multiply = (a, b) => a * b;
-calc.divide = (a, b) => a / b;
-
-calc.operate = (a, b, operator) => {
+const operate = (a, operator, b) => {
   switch (operator) {
     case '+':
-      return calc.add(a, b);
+      return add(a, b);
     case '-':
-      return calc.subtract(a, b);
+      return subtract(a, b);
     case '×':
-      return calc.multiply(a, b);
+      return multiply(a, b);
     case '÷':
-      return calc.divide(a, b);
+      return divide(a, b);
     default:
       return 'ERROR';
   }
 }
 
-calc.addText = (str) => {
-  calc.screenText += str;
-  calc.updateScreen();
+const maybeAddText = (str) => {
+  if (!isTextValid(str)) return;
+  if (maybeDoOperation(str)) return;
+  updateScreen(str);
 }
 
-calc.clear = () => {
-  calc.screenText = '';
-  calc.updateScreen();
+const isTextValid = (str) => {
+  if (getScreenText() === '') return true;
+  const arrayText = getScreenTextAsArray();
+  return !(arrayText[arrayText.length - 1].match(/\D/) && str.match(/\D/));
 }
 
-calc.updateScreen = () => {
-  document.querySelector('.calc-screen').textContent = calc.screenText;
+const maybeDoOperation = (str) => {
+  let screenTextContainsOperator = false;
+  for (let textFragment of getScreenTextAsArray()) {
+    if (isOperator(textFragment)) {
+      screenTextContainsOperator = true;
+      break;
+    }
+  }
+  
+  if (screenTextContainsOperator && isOperator(str)) {
+    updateScreen(operate(...getScreenTextAsArray()) + str, true);
+    return true;
+  }
+  return false;
 }
 
-calc.screenText = '';
+const getScreenText = () =>
+  document.querySelector('.calc-screen').textContent.toString();
 
-calc.addKeyListeners = () => {
+const getScreenTextAsArray = () => {
+  if (Array.isArray(getScreenText().match(/(\d+|\D+)/g))) {
+    return getScreenText().match(/(\d+|\D+)/g);
+  }
+  return [];
+}
+
+const isOperator = (input) => {
+  return (input === '+' || input === '-' || input === '×' || input === '÷');
+}
+
+const updateScreen = (text = '', shouldClearScreen = false) => {
+  let screenText = document.querySelector('.calc-screen').textContent;
+  if (shouldClearScreen) screenText = '';
+  screenText += text;
+  document.querySelector('.calc-screen').textContent = screenText;
+}
+
+const addKeyListeners = () => {
   const keys = document.querySelectorAll('.key:not(.nontext)');
-  keys.forEach(key => calc.setKeyVal(key));
+  keys.forEach(key => setKeyVal(key));
   
   document.getElementById('clear').addEventListener('click',
-    calc.clear);
+    () => updateScreen('', true));
+  
+  document.getElementById('equals').addEventListener('click',
+    equals);
 }
 
-calc.setKeyVal = (key) => {
-  key.addEventListener('click', () => calc.addText(key.textContent));
+const setKeyVal = (key) => {
+  key.addEventListener('click', () => maybeAddText(key.textContent));
 }
 
-calc.init = () => {
-  calc.addKeyListeners();
+const equals = () => {
+  updateScreen(operate(...getScreenTextAsArray()), true);
 }
 
-calc.init();
+const initCalculator = () => {
+  updateScreen();
+  addKeyListeners();
+}
+
+initCalculator();
