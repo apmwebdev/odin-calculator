@@ -1,3 +1,105 @@
 * {
     box-sizing: border-box;
 }
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    min-height: 100vh;
+    justify-content: space-between;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-size: 18px;
+}
+
+.calculator, .calc-screen, .key {
+    border-radius: 12px;
+}
+
+.calculator {
+    width: 700px;
+    padding: 32px;
+}
+
+.calc-screen {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    font-family: "Lucide Console", Courier, monospace;
+    font-size: 48px;
+    font-weight: 900;
+
+    margin-bottom: 16px;
+    padding: 16px 24px;
+    height: 96px;
+}
+
+.calc-keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: minmax(80px, auto);
+    gap: 16px;
+
+    font-size: 30px;
+    font-weight: bold;
+}
+
+#clear {
+    grid-column: 1 / 4;
+}
+
+#num-0 {
+    grid-column: 1 / 3;
+}
+
+.key {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Colors */
+:root {
+    /* --dark-blue: #1f2937 = hsl(215, 28%, 17%) */
+    --dark-blue: hsl(217, 38%, 47%);
+    /* --blue: #3882f6 = hsl(217, 91%, 59%) */
+    --blue: hsl(217, 70%, 49%);
+    --light-blue: hsl(217, 50%, 90%);
+
+    --dark-orange: hsl(197, 38%, 47%);
+    --orange: hsl(197, 70%, 49%);
+    --light-orange: hsl(197, 50%, 90%);
+    --light-gray: #e5e7eb;
+    --white: #f9faf8;
+    --gray: hsl(0, 0%, 47%);
+    --dark-gray: hsl(0, 0%, 27%);
+}
+
+.calculator {
+    background-color: var(--light-gray);
+}
+
+.calc-screen {
+    border: 3px solid var(--gray);
+    color: var(--dark-gray);
+}
+
+.key {
+    background-color: var(--light-blue);
+    color: var(--dark-blue);
+    border: 3px solid var(--blue);
+}
+
+.key.special {
+    background-color: var(--light-orange);
+    color: var(--dark-orange);
+    border: 3px solid var(--orange);
+}
+
+#equals {
+    background-color: var(--orange);
+    color: var(--white);
+    border-color: var(--orange);
+}
