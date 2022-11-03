@@ -19,6 +19,6 @@ Steps:
 3. Wire up UI to arithmetic functions
 
 To do:
-- Deal with leading zeroes
+- Deal with leading zeroes - done
 - Deal with large numbers
 - Deal with floats

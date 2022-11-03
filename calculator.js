@@ -1,39 +1,150 @@
-const add = (a, b) => a + b;
-const subtract = (a, b) => a - b;
-const multiply = (a, b) => a * b;
-const divide = (a, b) => a / b;
-
-const operate = (operand1, operator, operand2) => {
-  operand1 = Number(operand1);
-  operand2 = Number(operand2);
+const add = (a, operator, b, areMixedTypes = false) => {
+  if (!areMixedTypes) {
+    return a + b;
+  }
   
-  switch (operator) {
-    case '+':
-      return add(operand1, operand2);
-    case '-':
-      return subtract(operand1, operand2);
-    case '×':
-      return multiply(operand1, operand2);
-    case '÷':
-      return divide(operand1, operand2);
+  a = formatNum(a, true);
+  b = formatNum(b, true);
+  
+  switch (true) {
+    case ((typeof a === 'number' || typeof a === 'bigint') && Array.isArray(b)):
+      return `${evalInts(a, operator, b[0])}.${b[1]}`;
+    case (Array.isArray(a) && (typeof b === 'number' || typeof b === 'bigint')):
+      return `${evalInts(b, operator, a[0])}.${a[1]}`;
     default:
       return 'ERROR';
   }
 }
 
-const formatNum = (num) => {
-  if (!hasDecimal(num)) {
-    if (num.length > 5) return BigInt(num);
-    return Number(num);
+const subtract = (a, operator, b, areMixedTypes = false) => {
+  if (!areMixedTypes) {
+    return a - b;
   }
-  let numArray = floatAsArray(num);
-  if (numArray[0]) {
-    return false;
+  a = formatNum(a);
+  b = formatNum(b);
+  
+  switch (true) {
+    case (Array.isArray(b)):
+      const bFloat = parseFloat(b.join('.'));
+      return precisionRound(a - bFloat, b[1].length).toString();
+    case (Array.isArray(a)):
+      const aFloat = parseFloat(a.join('.'));
+      return precisionRound(aFloat - b, a[1].length).toString();
+    default:
+      return 'ERROR';
+  }
+}
+const multiply = (a, operator, b, areMixedTypes = false) => {
+  if (!areMixedTypes) {
+    return a * b;
+  }
+  a = formatNum(a);
+  b = formatNum(b);
+  
+  switch (true) {
+    case (Array.isArray(b)):
+      const bFloat = b.join('.');
+      return precisionRound(a * bFloat, b[1].length).toString();
+    case (Array.isArray(a)):
+      const aFloat = a.join('.');
+      return precisionRound(aFloat * b, a[1].length).toString();
+    default:
+      return 'ERROR';
+  }
+}
+const divide = (a, operator, b, areMixedTypes = false) => {
+  if (!areMixedTypes) {
+    return a / b;
+  }
+  a = formatNum(a);
+  b = formatNum(b);
+  
+  switch (true) {
+    case (Array.isArray(b)):
+      const bFloat = b.join('.');
+      return precisionRound(a / bFloat, 7).toString();
+    case (Array.isArray(a)):
+      const aFloat = a.join('.');
+      return precisionRound(aFloat / b, 7).toString();
+    default:
+      return 'ERROR';
   }
 }
 
+const precisionRound = (number, precision) => {
+  const factor = Math.pow(10, precision);
+  return Math.round(number * factor) / factor;
+}
+
+const evalFloats = (a, operator, b) => {
+  const aArr = floatAsArray(a);
+  const bArr = floatAsArray(b);
+  a = parseFloat(a);
+  b = parseFloat(b);
+  let precision;
+  if (operator === '+') {
+    precision = aArr[1].length > bArr[1].length ? aArr[1].length : bArr[1].length;
+  } else if (operator === '-') {
+    precision = aArr[1].length > bArr[1].length ? aArr[1].length : bArr[1].length;
+  } else if (operator === '×') {
+    precision = aArr[1].length + bArr[1].length;
+  } else {
+    precision = 7;
+  }
+  //Converting to a string to remove trailing zeros
+  return precisionRound(operate(a, operator, b), precision).toString();
+}
+
+const evalInts = (a, operator, b) => {
+  a = BigInt(a);
+  b = BigInt(b);
+  return operate(a, operator, b);
+}
+
+const operate = (operand1, operator, operand2, areMixedTypes = false) => {
+  switch (operator) {
+    case '+':
+      return add(operand1, operator, operand2, areMixedTypes);
+    case '-':
+      return subtract(operand1, operator, operand2, areMixedTypes);
+    case '×':
+      return multiply(operand1, operator, operand2, areMixedTypes);
+    case '÷':
+      return divide(operand1, operator, operand2, areMixedTypes);
+    default:
+      return 'ERROR';
+  }
+}
+
+const evaluate = (operand1, operator, operand2) => {
+  if (hasDecimal(operand1) && hasDecimal(operand2)) {
+    return evalFloats(operand1, operator, operand2);
+  }
+  if (!hasDecimal(operand1) && !hasDecimal(operand2)) {
+    return evalInts(operand1, operator, operand2);
+  }
+  // operand1 = formatNum(operand1);
+  // operand2 = formatNum(operand2);
+  return operate(operand1, operator, operand2, true);
+}
+
+const formatNum = (num, canUseBigInt = false) => {
+  if (!hasDecimal(num)) {
+    if (canUseBigInt) {
+      return BigInt(num);
+    }
+    return Number(num);
+  }
+  let numArray = floatAsArray(num);
+  if (canUseBigInt) {
+    numArray[0] = BigInt(numArray[0]);
+  } else {
+    numArray[0] = Number(numArray[0]);
+  }
+  return numArray;
+}
+
 const hasDecimal = (numString) => numString.match(/\./);
-const maybeUseBigInt = (num) => num.length > 5 ? BigInt(num) : false;
 
 const maybeAddText = (str) => {
   if (!isTextValid(str)) return;
@@ -42,7 +153,7 @@ const maybeAddText = (str) => {
 }
 
 const isValidOperation = () => {
-  if (!getScreenTextAsArray().length) return false;
+  if (!getScreenText()) return false;
   if (getScreenTextAsArray().length < 3) return false;
   if (getScreenTextAsArray()[2].slice(-1) === '.') return false;
   return true;
@@ -81,16 +192,16 @@ const isTextValid = (str) => {
   if (!isOperator(lastItem)) {
     const lastItemArr = floatAsArray(lastItem);
     
-    //Don't allow numbers larger than a trillion
+    //Don't allow numbers >= than 10 trillion
     if (lastItemArr && lastItemArr[0].match(/\d/)) {
-      if (lastItemArr[0].length >= 13 && str.match(/\d/)) {
+      if (lastItemArr[0].length > 13 && str.match(/\d/)) {
         return false;
       }
     }
     
     //Only allow up to 7 decimal places
-    if (lastItemArr.length === 3) {
-      const mantissa = lastItemArr[2];
+    if (lastItemArr.length === 2) {
+      const mantissa = lastItemArr[1];
       if (mantissa.length >= 7 && str.match(/\d/)) {
         return false;
       }
@@ -111,7 +222,7 @@ const maybeDoOperation = (str) => {
   }
   
   if (screenTextContainsOperator && isOperator(str)) {
-    updateScreen(operate(...getScreenTextAsArray()) + str, true);
+    updateScreen(evaluate(...getScreenTextAsArray()) + str, true);
     return true;
   }
   return false;
@@ -132,7 +243,7 @@ const getScreenTextAsArray = () => {
   return [];
 }
 
-const floatAsArray = (num) => num.match(/\d+|\./g);
+const floatAsArray = (num) => num.split('.');
 
 const isOperator = (input) => {
   return (input === '+' || input === '-' || input === '×' || input === '÷');
@@ -165,8 +276,8 @@ const setKeyVal = (key) => {
 }
 
 const equals = () => {
-  if (isValidOperation) {
-    updateScreen(operate(...getScreenTextAsArray()), true);
+  if (isValidOperation()) {
+    updateScreen(evaluate(...getScreenTextAsArray()), true);
   }
   
 }
