@@ -27,7 +27,9 @@ const formatNum = (num) => {
     return Number(num);
   }
   let numArray = floatAsArray(num);
-  if (numArray[0])
+  if (numArray[0]) {
+    return false;
+  }
 }
 
 const hasDecimal = (numString) => numString.match(/\./);
@@ -55,16 +57,24 @@ const isTextValid = (str) => {
   const lastItem = arrayText[arrayText.length - 1];
   
   //Don't allow leading zeroes except for floats
-  if (lastItem === '0' && str !== '.') return false;
+  if (lastItem === '0' && str !== '.') {
+    return false;
+  }
   
   //Don't allow multiple periods in one operand
-  if (lastItem.match(/\./) && str === '.') return false;
+  if (lastItem.match(/\./) && str === '.') {
+    return false;
+  }
   
   //Don't allow periods at the end of operands
-  if (lastItem.slice(-1) === '.' && !str.match(/\d/)) return false;
+  if (lastItem.slice(-1) === '.' && !str.match(/\d/)) {
+    return false;
+  }
   
   //Don't allow multiple operators in a row
-  if (isOperator(lastItem) && isOperator(str)) return false;
+  if (isOperator(lastItem) && isOperator(str)) {
+    return false;
+  }
   
   //Validate number lengths
   if (!isOperator(lastItem)) {
@@ -80,11 +90,11 @@ const isTextValid = (str) => {
     //Only allow up to 7 decimal places
     if (lastItemArr.length === 3) {
       const mantissa = lastItemArr[2];
-      if (mantissa >= 7 && str.match(/\d/)) {
+      if (mantissa.length >= 7 && str.match(/\d/)) {
         return false;
       }
     }
-    console.log(lastItemArr);
+    // console.log(lastItemArr);
   }
   
  return true;
@@ -132,7 +142,7 @@ const updateScreen = (text = '', shouldClearScreen = false) => {
   if (shouldClearScreen) screenText = '';
   screenText += text;
   document.querySelector('.calc-screen').textContent = screenText;
-  // console.log(getScreenTextAsArray());
+  console.log(getScreenTextAsArray());
 }
 
 const addKeyListeners = () => {
