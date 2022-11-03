@@ -34,6 +34,7 @@ const subtract = (a, operator, b, areMixedTypes = false) => {
       return 'ERROR';
   }
 }
+
 const multiply = (a, operator, b, areMixedTypes = false) => {
   if (!areMixedTypes) {
     return a * b;
@@ -52,6 +53,7 @@ const multiply = (a, operator, b, areMixedTypes = false) => {
       return 'ERROR';
   }
 }
+
 const divide = (a, operator, b, areMixedTypes = false) => {
   if (!areMixedTypes) {
     return a / b;
@@ -149,23 +151,23 @@ const hasDecimal = (numString) => numString.match(/\./);
 const maybeAddText = (str) => {
   if (!isTextValid(str)) return;
   if (maybeDoOperation(str)) return;
-  updateScreen(str);
+  updateText(str);
 }
 
 const isValidOperation = () => {
-  if (!getScreenText()) return false;
-  if (getScreenTextAsArray().length < 3) return false;
-  if (getScreenTextAsArray()[2].slice(-1) === '.') return false;
+  if (!getFullText()) return false;
+  if (getFullTextAsArray().length < 3) return false;
+  if (getFullTextAsArray()[2].slice(-1) === '.') return false;
   return true;
 }
 
 const isTextValid = (str) => {
-  const screenText = getScreenText();
+  const screenText = getFullText();
   
   //Allow only numbers or a period as the first character on the screen
   if (screenText === '') return !isOperator(str);
   
-  const arrayText = getScreenTextAsArray();
+  const arrayText = getFullTextAsArray();
   const lastItem = arrayText[arrayText.length - 1];
   
   //Don't allow leading zeroes except for floats
@@ -213,7 +215,7 @@ const isTextValid = (str) => {
 
 const maybeDoOperation = (str) => {
   let screenTextContainsOperator = false;
-  for (let textFragment of getScreenTextAsArray()) {
+  for (let textFragment of getFullTextAsArray()) {
     if (isOperator(textFragment)) {
       screenTextContainsOperator = true;
       break;
@@ -221,25 +223,10 @@ const maybeDoOperation = (str) => {
   }
   
   if (screenTextContainsOperator && isOperator(str)) {
-    updateScreen(evaluate(...getScreenTextAsArray()) + str, true);
+    updateText(evaluate(...getFullTextAsArray()) + str, true);
     return true;
   }
   return false;
-}
-
-const getScreenText = () =>
-  document.querySelector('.calc-screen').textContent.toString();
-
-const getScreenTextAsArray = () => {
-  /**
-   * Split out the screen text into operands and operators and put the
-   * resulting substrings into an array.
-   */
-  const returnArr = getScreenText().match(/(\d+(\.\d*)?|\D+)/g);
-  if (Array.isArray(returnArr)) {
-    return returnArr;
-  }
-  return [];
 }
 
 const floatAsArray = (num) => num.split('.');
@@ -248,11 +235,34 @@ const isOperator = (input) => {
   return (input === '+' || input === '-' || input === '×' || input === '÷');
 }
 
-const updateScreen = (text = '', shouldClearScreen = false) => {
-  let screenText = document.querySelector('.calc-screen').textContent;
-  if (shouldClearScreen) screenText = '';
-  screenText += text;
-  document.querySelector('.calc-screen').textContent = screenText;
+const getFullText = () => {
+  return fullText;
+}
+
+const getFullTextAsArray = () => {
+  const returnArr = getFullText().match(/(\d+(\.\d*)?|\D+)/g);
+  if (Array.isArray(returnArr)) {
+    return returnArr;
+  }
+  return [];
+}
+
+const updateText = (text = '', shouldClearText = false) => {
+  let newText = fullText;
+  if (shouldClearText) newText = '';
+  newText += text;
+  fullText = newText;
+  updateCalcScreen();
+}
+
+const updateCalcScreen = () => {
+  let calcText = document.querySelector('.calc-screen');
+  let textArr = getFullTextAsArray();
+  if (fullText === '') {
+    calcText.textContent = '0';
+  } else if (textArr.length) {
+    calcText.textContent = textArr.pop();
+  }
 }
 
 const addKeyListeners = () => {
@@ -260,7 +270,7 @@ const addKeyListeners = () => {
   keys.forEach(key => setKeyVal(key));
   
   document.getElementById('clear').addEventListener('click',
-    () => updateScreen('', true));
+    () => updateText('', true));
   
   document.getElementById('equals').addEventListener('click',
     equals);
@@ -275,20 +285,22 @@ const setKeyVal = (key) => {
 
 const equals = () => {
   if (isValidOperation()) {
-    updateScreen(evaluate(...getScreenTextAsArray()), true);
+    updateText(evaluate(...getFullTextAsArray()), true);
   }
   
 }
 
 const backspace = () => {
-  if (getScreenText()) {
-    updateScreen(getScreenText().slice(0, -1), true);
+  if (getFullText()) {
+    updateText(getFullText().slice(0, -1), true);
   }
 }
 
 const initCalculator = () => {
-  updateScreen();
+  updateText();
   addKeyListeners();
 }
+
+let fullText = '';
 
 initCalculator();
