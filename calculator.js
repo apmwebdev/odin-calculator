@@ -44,6 +44,7 @@ const maybeAddText = (str) => {
 const isValidOperation = () => {
   if (!getScreenTextAsArray().length) return false;
   if (getScreenTextAsArray().length < 3) return false;
+  if (getScreenTextAsArray()[2].slice(-1) === '.') return false;
   return true;
 }
 
