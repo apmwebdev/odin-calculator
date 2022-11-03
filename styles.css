@@ -24,13 +24,14 @@ header, footer {
 }
 
 header {
+    margin: 12px;
     font-size: 36px;
-    padding: 24px;
+    padding: 24px 48px;
     font-weight: bold;
 }
 
 footer {
-    padding: 12px;
+    padding: 12px 36px;
 }
 
 .calculator, .calc-screen, .key {
@@ -139,6 +140,7 @@ header {
 }
 
 footer {
-    background-color: var(--dark-blue);
-    color: var(--light-gray);
+    background-color: var(--light-blue);
+    color: var(--gray);
+    border: 2px solid var(--gray);
 }

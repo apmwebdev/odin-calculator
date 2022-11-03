@@ -20,5 +20,8 @@ Steps:
 
 To do:
 - Deal with leading zeroes - done
-- Deal with large numbers
-- Deal with floats
+- Deal with large numbers -done
+- Deal with floats -done
+- Make screen more fancy
+- Add keyboard support
+- Add other functions: +/-, memory?
