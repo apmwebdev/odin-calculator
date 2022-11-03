@@ -206,7 +206,6 @@ const isTextValid = (str) => {
         return false;
       }
     }
-    // console.log(lastItemArr);
   }
   
  return true;
@@ -254,7 +253,6 @@ const updateScreen = (text = '', shouldClearScreen = false) => {
   if (shouldClearScreen) screenText = '';
   screenText += text;
   document.querySelector('.calc-screen').textContent = screenText;
-  console.log(getScreenTextAsArray());
 }
 
 const addKeyListeners = () => {
