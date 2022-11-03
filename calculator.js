@@ -3,23 +3,35 @@ const subtract = (a, b) => a - b;
 const multiply = (a, b) => a * b;
 const divide = (a, b) => a / b;
 
-const operate = (a, operator, b) => {
-  a = Number(a);
-  b = Number(b);
+const operate = (operand1, operator, operand2) => {
+  operand1 = Number(operand1);
+  operand2 = Number(operand2);
   
   switch (operator) {
     case '+':
-      return add(a, b);
+      return add(operand1, operand2);
     case '-':
-      return subtract(a, b);
+      return subtract(operand1, operand2);
     case '×':
-      return multiply(a, b);
+      return multiply(operand1, operand2);
     case '÷':
-      return divide(a, b);
+      return divide(operand1, operand2);
     default:
       return 'ERROR';
   }
 }
+
+const formatNum = (num) => {
+  if (!hasDecimal(num)) {
+    if (num.length > 5) return BigInt(num);
+    return Number(num);
+  }
+  let numArray = floatAsArray(num);
+  if (numArray[0])
+}
+
+const hasDecimal = (numString) => numString.match(/\./);
+const maybeUseBigInt = (num) => num.length > 5 ? BigInt(num) : false;
 
 const maybeAddText = (str) => {
   if (!isTextValid(str)) return;
@@ -27,16 +39,55 @@ const maybeAddText = (str) => {
   updateScreen(str);
 }
 
+const isValidOperation = () => {
+  if (!getScreenTextAsArray().length) return false;
+  if (getScreenTextAsArray().length < 3) return false;
+  return true;
+}
+
 const isTextValid = (str) => {
   const screenText = getScreenText();
-  if (screenText === '') return true;
+  
+  //Allow only numbers or a period as the first character on the screen
+  if (screenText === '') return !isOperator(str);
   
   const arrayText = getScreenTextAsArray();
   const lastItem = arrayText[arrayText.length - 1];
   
+  //Don't allow leading zeroes except for floats
+  if (lastItem === '0' && str !== '.') return false;
+  
+  //Don't allow multiple periods in one operand
   if (lastItem.match(/\./) && str === '.') return false;
   
-  return !(isOperator(lastItem) && isOperator(str));
+  //Don't allow periods at the end of operands
+  if (lastItem.slice(-1) === '.' && !str.match(/\d/)) return false;
+  
+  //Don't allow multiple operators in a row
+  if (isOperator(lastItem) && isOperator(str)) return false;
+  
+  //Validate number lengths
+  if (!isOperator(lastItem)) {
+    const lastItemArr = floatAsArray(lastItem);
+    
+    //Don't allow numbers larger than a trillion
+    if (lastItemArr && lastItemArr[0].match(/\d/)) {
+      if (lastItemArr[0].length >= 13 && str.match(/\d/)) {
+        return false;
+      }
+    }
+    
+    //Only allow up to 7 decimal places
+    if (lastItemArr.length === 3) {
+      const mantissa = lastItemArr[2];
+      if (mantissa >= 7 && str.match(/\d/)) {
+        return false;
+      }
+    }
+    console.log(lastItemArr);
+  }
+  
+ return true;
 }
 
 const maybeDoOperation = (str) => {
@@ -61,7 +112,7 @@ const getScreenText = () =>
 const getScreenTextAsArray = () => {
   /**
    * Split out the screen text into operands and operators and put the
-   * substrings into an array.
+   * resulting substrings into an array.
    */
   const returnArr = getScreenText().match(/(\d+(\.\d*)?|\D+)/g);
   if (Array.isArray(returnArr)) {
@@ -69,6 +120,8 @@ const getScreenTextAsArray = () => {
   }
   return [];
 }
+
+const floatAsArray = (num) => num.match(/\d+|\./g);
 
 const isOperator = (input) => {
   return (input === '+' || input === '-' || input === '×' || input === '÷');
@@ -101,7 +154,10 @@ const setKeyVal = (key) => {
 }
 
 const equals = () => {
-  updateScreen(operate(...getScreenTextAsArray()), true);
+  if (isValidOperation) {
+    updateScreen(operate(...getScreenTextAsArray()), true);
+  }
+  
 }
 
 const backspace = () => {
